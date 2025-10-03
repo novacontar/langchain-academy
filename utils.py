@@ -2,26 +2,31 @@ import os
 import getpass
 from pathlib import Path
 
+from langchain_core.runnables.graph_mermaid import MermaidDrawMethod
+from IPython.display import Image, display
+
+
 def load_env_file(env_file=".env"):
     """Load environment variables from a .env file"""
     env_path = Path(env_file)
 
     if env_path.exists():
         print(f"Loading environment variables from {env_file}")
-        with open(env_path, 'r') as file:
+        with open(env_path, "r") as file:
             for line in file:
                 line = line.strip()
                 # Skip empty lines and comments
-                if line and not line.startswith('#'):
+                if line and not line.startswith("#"):
                     # Split on first '=' only
-                    if '=' in line:
-                        key, value = line.split('=', 1)
+                    if "=" in line:
+                        key, value = line.split("=", 1)
                         # Remove quotes if present
-                        value = value.strip('"\'')
+                        value = value.strip("\"'")
                         os.environ[key.strip()] = value
         print("✅ Environment variables loaded from .env file")
     else:
         print(f"⚠️  No {env_file} file found")
+
 
 def _set_env(var: str):
     """Set environment variable, prompting securely if not already set"""
@@ -31,6 +36,7 @@ def _set_env(var: str):
         print(f"✅ {var} has been set")
     else:
         print(f"✅ {var} already configured")
+
 
 def setup_environment(env_vars=None, env_file=".env"):
     """
@@ -43,7 +49,12 @@ def setup_environment(env_vars=None, env_file=".env"):
         env_file: Path to .env file (default: ".env")
     """
     if env_vars is None:
-        env_vars = ["GROQ_API_KEY", "OPENAI_API_KEY", "LANGSMITH_API_KEY", "TAVILY_API_KEY"]
+        env_vars = [
+            "GROQ_API_KEY",
+            "OPENAI_API_KEY",
+            "LANGSMITH_API_KEY",
+            "TAVILY_API_KEY",
+        ]
 
     print("🚀 Setting up environment variables...")
 
@@ -57,15 +68,34 @@ def setup_environment(env_vars=None, env_file=".env"):
 
     print("\n🎉 Environment setup complete!")
 
+
+def plot_graph(graph):
+    try:
+        # Try local rendering
+        display(
+            Image(
+                graph.get_graph().draw_mermaid_png(
+                    draw_method=MermaidDrawMethod.PYPPETEER
+                )
+            )
+        )
+    except Exception as e:
+        print(f"Pyppeteer failed with error:\n`{e}`\n")
+        # Fallback to ASCII
+        # # ASCII visualization (always works)
+        print("ASCII visualization of the Graph Structure:")
+        print(graph.get_graph().draw_ascii())
+
+
 # Example usage:
 if __name__ == "__main__":
     # Setup with default variables
     # setup_environment(env_file="../.env")
 
     # Or specify your required variables
-    setup_environment(["LANGSMITH_API_KEY", "GROQ_API_KEY", "TAVILY_API_KEY"], env_file="../.env")
+    setup_environment(
+        ["LANGSMITH_API_KEY", "GROQ_API_KEY", "TAVILY_API_KEY"], env_file="../.env"
+    )
 
     # Or use a different .env file
     # setup_environment(env_file="production.env")
-
-
